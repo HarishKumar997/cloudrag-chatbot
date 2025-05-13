@@ -1,9 +1,9 @@
 Flask==2.3.3
 langchain==0.1.14
-langchain-community==0.0.34
+langchain-community==0.0.38
 sentence-transformers==2.2.2
-transformers==4.39.3
+transformers==4.29.2
 chromadb==0.4.24
-unstructured==0.17.2
+unstructured==0.10.25
 pypdf==3.15.5
 huggingface-hub==0.14.1
