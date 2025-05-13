@@ -6,43 +6,32 @@ from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-# === Load and Split the PDF ===
+# Load and process PDF
 loader = PyPDFLoader("document/Company_Policy.pdf")
 docs = loader.load()
-
 splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
 chunks = splitter.split_documents(docs)
 
-# === HuggingFace Embeddings with trust_remote_code ===
+# Use a compatible embedding model
 embedding = HuggingFaceEmbeddings(
-    model_name="nomic-ai/nomic-embed-text-v1",
-    model_kwargs={"trust_remote_code": True}
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
-# === Create Vector Store ===
+# Build vector store and retrieval QA
 vectordb = Chroma.from_documents(chunks, embedding=embedding)
-
-# === Load Local Ollama LLM ===
 llm = Ollama(model="mistral:7b-instruct")
+qa = RetrievalQA.from_chain_type(llm=llm, retriever=vectordb.as_retriever())
 
-# === Setup RetrievalQA Chain ===
-qa = RetrievalQA.from_chain_type(
-    llm=llm,
-    retriever=vectordb.as_retriever()
-)
-
-# === Flask App Setup ===
+# Flask app
 app = Flask(__name__)
 
 @app.route("/ask", methods=["POST"])
 def ask():
-    query = request.json.get("query")
-
-    if not query or not isinstance(query, str) or not query.strip():
-        return jsonify({"error": "Invalid query"}), 400
-
+    query = request.json.get("query", "")
+    if not query.strip():
+        return jsonify({"error": "Query is empty"}), 400
     response = qa.run(query)
     return jsonify({"response": response})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=10000)
