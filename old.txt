@@ -1,0 +1,6 @@
+langchain==0.1.14
+chromadb==0.4.24
+flask==2.3.3
+sentence-transformers==2.2.2
+tiktoken==0.5.1
+python-dotenv==1.0.1
